@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ПУТЬ АРТЕФАКТОВ</title>
+<title>ПУТЬ <!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ПУТЬ КОРОЛЯ</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
 
@@ -195,6 +200,82 @@ body{
   transform:translateY(-1cm);
 }
 
+.final{
+  position:fixed;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  z-index:30;
+}
+
+.final img{
+  width:38vw;
+  max-width:260px;
+  margin-bottom:4vw;
+}
+
+/* 👑 КОРОНА */
+.crown{
+  background:
+    radial-gradient(circle,rgba(255,220,160,.95),rgba(140,0,200,.8),black);
+}
+
+.crown img{
+  animation:float 3s ease-in-out infinite;
+}
+
+/* 👑✨ ПОЛНЫЙ КОРОЛЬ */
+.ultimate{
+  background:
+    radial-gradient(circle at top,#fff6d0,#ffcc66,#6a1db0,black);
+}
+
+.ultimate img{
+  animation:ascend 4s ease forwards;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+
+@keyframes ascend{
+  from{
+    transform:scale(.6) translateY(80px);
+    opacity:0;
+  }
+  to{
+    transform:scale(1.2) translateY(0);
+    opacity:1;
+  }
+}
+
+/* ✨ ФЕЙЕРВЕРК */
+.spark{
+  position:fixed;
+  width:6px;
+  height:6px;
+  background:gold;
+  border-radius:50%;
+  animation:boom 1.5s ease-out;
+  z-index:40;
+}
+
+@keyframes boom{
+  from{transform:scale(0);opacity:1}
+  to{transform:scale(3);opacity:0}
+}
+
+#fireworks{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:50;
+}
+
 
 </style>
 </head>
@@ -228,12 +309,36 @@ body{
   <div style="margin-top:4vw;opacity:.8">Нажмите, чтобы продолжить</div>
 </div>
 
+<!-- CROWN WIN -->
+<div id="crownWin" class="final crown">
+  <img src="king_full.png">
+  <h2 class="glow">Ты стал Королём</h2>
+  <p>Но путь Артефактов ещё не завершён…</p>
+</div>
+
+<!-- ULTIMATE WIN -->
+<div id="ultimateWin" class="final ultimate">
+  <img src="king_full.png">
+  <h1 class="glow">Истинный Король</h1>
+  <p>Все Артефакты покорились тебе</p>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+
 <script>
 let chestRewards = []; // нагороди сундуків поточного рівня
 let artifactFound = false;
 
 
-const artifacts=["1.png","2.png","3.png","4.png","5.png"];
+const artifacts=[
+  "11.png",
+  "12.png",
+  "13.png",
+  "14.png",
+  "15.png" // 👑 корона
+];
+
 let collected=[];
 let levels=Array(5).fill(false);
 let current=0, attempts=5, active=2, locked=false;
@@ -327,52 +432,60 @@ setTimeout(()=>{
 function showPrize(){
   let reward = chestRewards[active];
 
-  if(reward==='artifact'){
-    let available = artifacts.filter(a=>!collected.includes(a));
-    if(!available.length) return;
+  if(reward === 'artifact'){
+    let prize = artifacts[current]; // 🔥 ЧІТКО ПО РІВНЮ
 
-    let prize = available[Math.floor(Math.random()*available.length)];
-    collected.push(prize);
+    if(!collected.includes(prize)){
+      collected.push(prize);
+    }
+
     prizeImg.src = prize;
-
     artifactFound = true;
     levels[current] = true;
 
     overlay.style.display='flex';
 
-    // ✅ після артефакту одразу вихід у меню
     overlay.onclick = ()=>{
       overlay.style.display='none';
       locked=false;
+
+      // 👑 Корона
+      if(prize === "5.png"){
+        megaFireworks();
+        showCrownWin();
+        return;
+      }
+
+      // 👑✨ Повний Король
+      if(collected.length === artifacts.length){
+        megaFireworks();
+        showUltimateWin();
+        return;
+      }
+
       switchScreen(game,menu);
       renderMenu();
     };
     return;
   }
 
-  else if(reward==='free'){
+  else if(reward === 'free'){
     attempts++;
     updateAttempts();
-    prizeImg.src = 'free.png';
+    prizeImg.src='free.png';
   }
-
   else{
-    prizeImg.src = 'empty.png';
+    prizeImg.src='empty.png';
   }
 
   overlay.style.display='flex';
-
-  // ✅ стандартна логіка для пустих/бонусних
-  overlay.onclick = ()=>{
+  overlay.onclick=()=>{
     overlay.style.display='none';
     locked=false;
-    if(attempts<=0){
-      levels[current]=true;
-      switchScreen(game,menu);
-      renderMenu();
-    }
   };
 }
+
+
 
 function updateCarousel(){
   document.querySelectorAll('.chest').forEach(c=>{
@@ -436,6 +549,733 @@ function switchScreen(a,b){
 const levelsBox=document.getElementById('levels');
 const levelTitle=document.getElementById('levelTitle');
 const attemptsEl=document.getElementById('attempts');
+
+function launchFireworks(count=40){
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    s.style.left=Math.random()*100+'vw';
+    s.style.top=Math.random()*100+'vh';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),1500);
+  }
+}
+
+function showCrownWin(){
+  const win=document.getElementById('crownWin');
+  win.style.display='flex';
+  launchFireworks(30);
+
+  win.onclick=()=>{
+    win.style.display='none';
+    switchScreen(game,menu);
+    renderMenu();
+  };
+}
+
+function showUltimateWin(){
+  const win=document.getElementById('ultimateWin');
+  win.style.display='flex';
+  launchFireworks(70);
+
+  win.onclick=()=>{
+    win.style.display='none';
+    switchScreen(game,menu);
+    renderMenu();
+  };
+}
+
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resizeCanvas();
+addEventListener("resize", resizeCanvas);
+
+let particles=[];
+
+function explode(x,y,count=120){
+  for(let i=0;i<count;i++){
+    particles.push({
+      x,y,
+      r:Math.random()*3+1,
+      a:Math.random()*Math.PI*2,
+      s:Math.random()*6+2,
+      l:100,
+      c:`hsl(${Math.random()*360},100%,60%)`
+    });
+  }
+}
+
+function fireworksLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{
+    p.x+=Math.cos(p.a)*p.s;
+    p.y+=Math.sin(p.a)*p.s;
+    p.l--;
+    ctx.fillStyle=p.c;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(p.l<=0) particles.splice(i,1);
+  });
+  requestAnimationFrame(fireworksLoop);
+}
+fireworksLoop();
+
+function megaFireworks(){
+  let bursts=0;
+  let interval=setInterval(()=>{
+    explode(
+      Math.random()*canvas.width,
+      Math.random()*canvas.height*0.6,
+      160
+    );
+    bursts++;
+    if(bursts>8) clearInterval(interval);
+  },300);
+}
+
+
+renderMenu();
+</script>
+
+</body>
+</html>
+</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Cinzel',serif;
+  background:radial-gradient(circle at top,#6a1db0,#2a0040,#050008);
+  color:#fff;
+  height:100vh;
+  overflow:hidden;
+}
+:root{
+  --gold:#d6a84a;
+  --gold-dark:#8f6a1f;
+}
+.glow{text-shadow:0 0 8px rgba(180,80,255,.9)}
+
+.screen{
+  position:absolute; inset:0;
+  display:none;
+  flex-direction:column;
+  padding:4vw;
+}
+.screen.active{display:flex}
+
+/* ===== MENU ===== */
+.level{
+  border:2px solid var(--gold-dark);
+  padding:4vw;
+  border-radius:14px;
+  margin-bottom:3vw;
+  text-align:center;
+  color:var(--gold);
+}
+.level.locked{opacity:.4}
+
+#gallery{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:3vw;
+  margin-top:4vw;
+}
+.slot{
+  width:18vw;
+  max-width:80px;
+  aspect-ratio:1;
+  border:2px solid var(--gold-dark);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.slot img{max-width:85%}
+
+/* ===== GAME ===== */
+.header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:3vw;
+}
+.attempts{
+  border:2px solid var(--gold-dark);
+  padding:2vw 4vw;
+  border-radius:10px;
+  color:var(--gold);
+}
+
+.carousel{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  touch-action:pan-y;
+}
+
+.track{
+  position:relative;
+  width:100%;
+  height:40vw;
+  max-height:200px;
+}
+
+.chest{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:22vw;
+  max-width:120px;
+  transform:translate(-50%,-50%) scale(.7);
+  opacity:.35;
+  transition:.45s ease;
+  filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
+}
+
+.chest.center{
+  transform:translate(-50%,-50%) scale(1.3);
+  opacity:1;
+  z-index:3;
+  filter:drop-shadow(0 0 25px gold);
+}
+
+.chest.left{
+  transform:translate(calc(-50% - 26vw),-50%) scale(.8);
+  z-index:2;
+}
+
+.chest.right{
+  transform:translate(calc(-50% + 26vw),-50%) scale(.8);
+  z-index:2;
+}
+
+.chest.opening{
+  animation:openChest .6s ease;
+}
+
+@keyframes openChest{
+  0%{
+    transform:translate(-50%,-50%) scale(1.3);
+  }
+  40%{
+    transform:translate(-50%,-50%) scale(1.45);
+  }
+  100%{
+    transform:translate(-50%,-50%) scale(1.3);
+  }
+}
+
+
+.chest.active{
+  transform:scale(1.25);
+  opacity:1;
+  filter:drop-shadow(0 0 20px gold);
+}
+
+/* ===== OVERLAY ===== */
+#overlay{
+  position:fixed; inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  background:radial-gradient(circle,rgba(255,230,160,.95),rgba(120,0,180,.7),rgba(0,0,0,.95));
+  z-index:10;
+}
+#overlay img{width:28vw;max-width:120px}
+
+/* scroll for carousel */
+.carousel{
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+}
+.track{
+  scroll-snap-align:center;
+}
+
+.chest{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:22vw;
+  max-width:120px;
+  transform:translate(-50%,-50%) scale(.7);
+  opacity:.35;
+  transition:.45s ease;
+}
+
+.chest img{
+  width:100%;
+  display:block;
+}
+
+.chest .base{
+  position:relative;
+  z-index:1;
+}
+
+.chest .lid{
+  position:absolute;
+  top: -26%;
+  left: 21%;
+  width: 62%;
+  z-index:2;
+  transition:transform .6s ease;
+}
+.chest.opening .lid{
+  transform:translateY(-1cm);
+}
+
+.final{
+  position:fixed;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  z-index:30;
+}
+
+.final img{
+  width:38vw;
+  max-width:260px;
+  margin-bottom:4vw;
+}
+
+/* 👑 КОРОНА */
+.crown{
+  background:
+    radial-gradient(circle,rgba(255,220,160,.95),rgba(140,0,200,.8),black);
+}
+
+.crown img{
+  animation:float 3s ease-in-out infinite;
+}
+
+/* 👑✨ ПОЛНЫЙ КОРОЛЬ */
+.ultimate{
+  background:
+    radial-gradient(circle at top,#fff6d0,#ffcc66,#6a1db0,black);
+}
+
+.ultimate img{
+  animation:ascend 4s ease forwards;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+
+@keyframes ascend{
+  from{
+    transform:scale(.6) translateY(80px);
+    opacity:0;
+  }
+  to{
+    transform:scale(1.2) translateY(0);
+    opacity:1;
+  }
+}
+
+/* ✨ ФЕЙЕРВЕРК */
+.spark{
+  position:fixed;
+  width:6px;
+  height:6px;
+  background:gold;
+  border-radius:50%;
+  animation:boom 1.5s ease-out;
+  z-index:40;
+}
+
+@keyframes boom{
+  from{transform:scale(0);opacity:1}
+  to{transform:scale(3);opacity:0}
+}
+
+#fireworks{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:50;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="menu" class="screen active">
+  <h2 class="glow" style="text-align:center;color:var(--gold)">ПУТЬ КОРОЛЯ</h2>
+
+  <div id="levels"></div>
+
+  <div id="gallery"></div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <div class="header">
+    <div id="levelTitle" class="glow"></div>
+    <div id="attempts" class="attempts glow"></div>
+  </div>
+
+  <div class="carousel">
+    <div class="track" id="track"></div>
+  </div>
+</div>
+
+<!-- PRIZE -->
+<div id="overlay">
+  <img id="prizeImg">
+  <div style="margin-top:4vw;opacity:.8">Нажмите, чтобы продолжить</div>
+</div>
+
+<!-- CROWN WIN -->
+<div id="crownWin" class="final crown">
+  <img src="king_full.png">
+  <h2 class="glow">Ты стал Королём</h2>
+  <p>Но путь Артефактов ещё не завершён…</p>
+</div>
+
+<!-- ULTIMATE WIN -->
+<div id="ultimateWin" class="final ultimate">
+  <img src="king_full.png">
+  <h1 class="glow">Истинный Король</h1>
+  <p>Все Артефакты покорились тебе</p>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+
+<script>
+let chestRewards = []; // нагороди сундуків поточного рівня
+let artifactFound = false;
+
+
+const artifacts=[
+  "11.png",
+  "12.png",
+  "13.png",
+  "14.png",
+  "15.png" // 👑 корона
+];
+
+let collected=[];
+let levels=Array(5).fill(false);
+let current=0, attempts=5, active=2, locked=false;
+
+const menu=document.getElementById('menu');
+const game=document.getElementById('game');
+const track=document.getElementById('track');
+const overlay=document.getElementById('overlay');
+
+function renderMenu(){
+  levelsBox.innerHTML='';
+  levels.forEach((done,i)=>{
+    const d=document.createElement('div');
+    d.className='level'+(done?' locked':'');
+    d.textContent='Уровень '+(i+1);
+    if(!done) d.onclick=()=>startLevel(i);
+    levelsBox.appendChild(d);
+  });
+  renderGallery();
+}
+
+function startLevel(i){
+  current=i;
+  attempts=5;
+  artifactFound=false;
+
+  generateRewards();
+
+  levelTitle.textContent='Уровень '+(i+1);
+  updateAttempts();
+  renderChests();
+  switchScreen(menu,game);
+}
+
+function generateRewards(){
+  chestRewards = [
+    'artifact',
+    'free',
+    'empty',
+    'empty',
+    'empty'
+  ];
+
+  // перемішуємо масив
+  for(let i=chestRewards.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [chestRewards[i], chestRewards[j]] =
+    [chestRewards[j], chestRewards[i]];
+  }
+}
+
+
+function renderChests(){
+  track.innerHTML='';
+  for(let i=0;i<5;i++){
+    const chest=document.createElement('div');
+    chest.className='chest';
+    chest.dataset.index=i;
+    chest.onclick=()=>openChest(active);
+
+    chest.innerHTML=`
+      <img src="Case.png" class="base">
+      <img src="lid.png" class="lid">
+    `;
+
+    track.appendChild(chest);
+  }
+  updateCarousel();
+}
+
+
+
+function openChest(){
+  if(locked||attempts<=0) return;
+
+  locked=true;
+  attempts--;
+  updateAttempts();
+
+  const center=document.querySelector('.chest.center');
+  center.classList.add('opening');
+
+setTimeout(()=>{
+  center.classList.remove('opening');
+  showPrize();
+},600);
+}
+
+
+
+function showPrize(){
+  let reward = chestRewards[active];
+
+  if(reward === 'artifact'){
+    let prize = artifacts[current]; // 🔥 ЧІТКО ПО РІВНЮ
+
+    if(!collected.includes(prize)){
+      collected.push(prize);
+    }
+
+    prizeImg.src = prize;
+    artifactFound = true;
+    levels[current] = true;
+
+    overlay.style.display='flex';
+
+    overlay.onclick = ()=>{
+      overlay.style.display='none';
+      locked=false;
+
+      // 👑 Корона
+      if(prize === "5.png"){
+        megaFireworks();
+        showCrownWin();
+        return;
+      }
+
+      // 👑✨ Повний Король
+      if(collected.length === artifacts.length){
+        megaFireworks();
+        showUltimateWin();
+        return;
+      }
+
+      switchScreen(game,menu);
+      renderMenu();
+    };
+    return;
+  }
+
+  else if(reward === 'free'){
+    attempts++;
+    updateAttempts();
+    prizeImg.src='free.png';
+  }
+  else{
+    prizeImg.src='empty.png';
+  }
+
+  overlay.style.display='flex';
+  overlay.onclick=()=>{
+    overlay.style.display='none';
+    locked=false;
+  };
+}
+
+
+
+function updateCarousel(){
+  document.querySelectorAll('.chest').forEach(c=>{
+    c.classList.remove('left','center','right');
+    let i=Number(c.dataset.index);
+
+    if(i===active){
+      c.classList.add('center');
+    }else if(i===(active+4)%5){
+      c.classList.add('left');
+    }else if(i===(active+1)%5){
+      c.classList.add('right');
+    }
+  });
+}
+
+
+
+function updateAttempts(){
+  attemptsEl.textContent='Попытки: '+attempts;
+}
+
+function renderGallery(){
+  gallery.innerHTML='';
+  artifacts.forEach(a=>{
+    const s=document.createElement('div');
+    s.className='slot';
+    if(collected.includes(a)){
+      const i=document.createElement('img');
+      i.src=a;
+      s.appendChild(i);
+    }
+    gallery.appendChild(s);
+  });
+}
+
+let startX=0;
+
+track.addEventListener('touchstart',e=>{
+  startX=e.touches[0].clientX;
+});
+
+track.addEventListener('touchend',e=>{
+  let dx=e.changedTouches[0].clientX - startX;
+  if(Math.abs(dx)<40) return;
+
+  if(dx<0){
+    active = (active+1)%5;
+  }else{
+    active = (active+4)%5;
+  }
+  updateCarousel();
+});
+
+
+function switchScreen(a,b){
+  a.classList.remove('active');
+  b.classList.add('active');
+}
+
+const levelsBox=document.getElementById('levels');
+const levelTitle=document.getElementById('levelTitle');
+const attemptsEl=document.getElementById('attempts');
+
+function launchFireworks(count=40){
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    s.style.left=Math.random()*100+'vw';
+    s.style.top=Math.random()*100+'vh';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),1500);
+  }
+}
+
+function showCrownWin(){
+  const win=document.getElementById('crownWin');
+  win.style.display='flex';
+  launchFireworks(30);
+
+  win.onclick=()=>{
+    win.style.display='none';
+    switchScreen(game,menu);
+    renderMenu();
+  };
+}
+
+function showUltimateWin(){
+  const win=document.getElementById('ultimateWin');
+  win.style.display='flex';
+  launchFireworks(70);
+
+  win.onclick=()=>{
+    win.style.display='none';
+    switchScreen(game,menu);
+    renderMenu();
+  };
+}
+
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resizeCanvas();
+addEventListener("resize", resizeCanvas);
+
+let particles=[];
+
+function explode(x,y,count=120){
+  for(let i=0;i<count;i++){
+    particles.push({
+      x,y,
+      r:Math.random()*3+1,
+      a:Math.random()*Math.PI*2,
+      s:Math.random()*6+2,
+      l:100,
+      c:`hsl(${Math.random()*360},100%,60%)`
+    });
+  }
+}
+
+function fireworksLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i)=>{
+    p.x+=Math.cos(p.a)*p.s;
+    p.y+=Math.sin(p.a)*p.s;
+    p.l--;
+    ctx.fillStyle=p.c;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(p.l<=0) particles.splice(i,1);
+  });
+  requestAnimationFrame(fireworksLoop);
+}
+fireworksLoop();
+
+function megaFireworks(){
+  let bursts=0;
+  let interval=setInterval(()=>{
+    explode(
+      Math.random()*canvas.width,
+      Math.random()*canvas.height*0.6,
+      160
+    );
+    bursts++;
+    if(bursts>8) clearInterval(interval);
+  },300);
+}
+
 
 renderMenu();
 </script>
