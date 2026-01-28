@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ПУТЬ КОРОЛОЯ</title>
+<title>ПУТЬ АРТЕФАКТОВ</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
 
@@ -162,6 +162,40 @@ body{
   scroll-snap-align:center;
 }
 
+.chest{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:22vw;
+  max-width:120px;
+  transform:translate(-50%,-50%) scale(.7);
+  opacity:.35;
+  transition:.45s ease;
+}
+
+.chest img{
+  width:100%;
+  display:block;
+}
+
+.chest .base{
+  position:relative;
+  z-index:1;
+}
+
+.chest .lid{
+  position:absolute;
+  top: -26%;
+  left: 21%;
+  width: 62%;
+  z-index:2;
+  transition:transform .6s ease;
+}
+.chest.opening .lid{
+  transform:translateY(-1cm);
+}
+
+
 </style>
 </head>
 
@@ -169,7 +203,7 @@ body{
 
 <!-- MENU -->
 <div id="menu" class="screen active">
-  <h2 class="glow" style="text-align:center;color:var(--gold)">ПУТЬ КОРОЛЯ</h2>
+  <h2 class="glow" style="text-align:center;color:var(--gold)">ПУТЬ АРТЕФАКТОВ</h2>
 
   <div id="levels"></div>
 
@@ -255,12 +289,17 @@ function generateRewards(){
 function renderChests(){
   track.innerHTML='';
   for(let i=0;i<5;i++){
-    const c=document.createElement('img');
-    c.src='Case.png';
-    c.className='chest';
-    c.dataset.index=i;
-    c.onclick=()=>openChest(active);
-    track.appendChild(c);
+    const chest=document.createElement('div');
+    chest.className='chest';
+    chest.dataset.index=i;
+    chest.onclick=()=>openChest(active);
+
+    chest.innerHTML=`
+      <img src="Case.png" class="base">
+      <img src="lid.png" class="lid">
+    `;
+
+    track.appendChild(chest);
   }
   updateCarousel();
 }
@@ -277,10 +316,10 @@ function openChest(){
   const center=document.querySelector('.chest.center');
   center.classList.add('opening');
 
-  setTimeout(()=>{
-    center.classList.remove('opening');
-    showPrize();
-  },600);
+setTimeout(()=>{
+  center.classList.remove('opening');
+  showPrize();
+},600);
 }
 
 
@@ -403,5 +442,3 @@ renderMenu();
 
 </body>
 </html>
-
-
