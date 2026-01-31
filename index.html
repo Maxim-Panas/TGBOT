@@ -9,6 +9,15 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html, body {
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  position:fixed;
+}
+
 body{
   font-family:'Cinzel',serif;
   background:radial-gradient(circle at top,#6a1db0,#2a0040,#050008);
@@ -23,37 +32,90 @@ body{
 .glow{text-shadow:0 0 8px rgba(180,80,255,.9)}
 
 .screen{
-  position:absolute; inset:0;
-  display:none;
+   justify-content:flex-start;
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100dvh;   /* 🔥 не vh */
+
+  display:flex;
   flex-direction:column;
   padding:4vw;
+
+  transform: translateX(100%);
+  opacity:0;
+  transition: transform .6s ease, opacity .6s ease;
+
+  overflow:hidden;
 }
-.screen.active{display:flex}
+
+.screen.active{
+  transform: translateX(0);
+  opacity:1;
+  z-index:2;
+}
+
 
 /* ===== MENU ===== */
 
 /* ⬇️ ОПУСТИТИ КОНТЕНТ МЕНЮ */
 #menu {
-  padding-top: 10vh;
+  position: relative;
+  height: 100vh;           /* займає весь екран */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* верх-центр-низ */
+  padding: 0 2vw;
 }
 
 
-.level{
-  border:2px solid var(--gold-dark);
-  padding:6vw;
-  border-radius:14px;
-  margin-bottom:3vw;
-  text-align:center;
-  color:var(--gold);
+/* Контейнер рівнів */
+#levels {
+  display: flex;
+  flex-direction: column;  /* стовпчик */
+  justify-content: center; /* по центру вертикально */
+  align-items: flex-start; /* ліворуч */
+  gap: 1vw;                /* відстань між квадратами */
+  margin-left: 2vw;
+  flex: 1;                  /* займає весь простір між заголовком і галереєю */
 }
-.level.locked{opacity:.4}
 
-#gallery{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:4vw;
-  margin-top:4vw;
+/* Квадрати рівнів */
+.level {
+  border: 2px solid var(--gold-dark);
+  border-radius: 14px;
+  color: var(--gold);
+  text-align: center;
+
+  width: 20vw;             
+  aspect-ratio: 1;         
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.level.locked {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.level:hover:not(.locked) {
+  transform: scale(1.05);
+  background: rgba(214,168,74,0.1);
+}
+
+/* Галерея артефактів */
+#gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2vw;
+  padding: 2vw 0;
 }
 .slot{
   width:15vw;
@@ -69,10 +131,15 @@ body{
 
 /* ===== GAME ===== */
 .header{
+  position:absolute;
+  top:3vh;
+  left:4vw;
+  right:4vw;
   display:flex;
   justify-content:space-between;
-  margin-bottom:3vw;
+  z-index:20;
 }
+
 .attempts{
   border:2px solid var(--gold-dark);
   padding:2vw 4vw;
@@ -81,49 +148,120 @@ body{
 }
 
 .carousel{
-  flex:1;
+  position:absolute;
+  inset:0;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   overflow:hidden;
-  touch-action:pan-y;
 }
+
 
 .track{
   position:relative;
   width:100%;
-  height:40vw;
-  max-height:200px;
+  height:100%;
 }
 
+
 .chest{
-  position:absolute;
-  top:50%;
-  left:50%;
-  width:22vw;
-  max-width:120px;
-  transform:translate(-50%,-50%) scale(.7);
-  opacity:.35;
-  transition:.45s ease;
-  filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
+  transition:
+    transform .7s cubic-bezier(.2,.9,.2,1),
+    filter .5s ease,
+    opacity .5s ease;
 }
 
 .chest.center{
-  transform:translate(-50%,-50%) scale(1.3);
+  filter:
+    drop-shadow(0 0 35px gold)
+    drop-shadow(0 0 70px rgba(255,230,140,.9));
+}
+
+
+@keyframes centerPulse{
+  0%,100%{ transform: scale(1.05); }
+  50%{ transform: scale(1.15); }
+}
+
+
+@keyframes centerGlow{
+  0%,100%{
+    filter:
+      drop-shadow(0 0 25px gold)
+      drop-shadow(0 0 40px gold);
+  }
+  50%{
+    filter:
+      drop-shadow(0 0 45px #fff6b0)
+      drop-shadow(0 0 70px gold);
+  }
+}
+
+.chest::after{
+  content:'';
+  position:absolute;
+  bottom:-12%;
+  left:50%;
+  width:70%;
+  height:30%;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background: radial-gradient(circle,
+    rgba(255,210,80,.6),
+    transparent 70%
+  );
+  opacity:0;
+  transition:.5s;
+}
+
+.chest.center::after{
   opacity:1;
-  z-index:3;
-  filter:drop-shadow(0 0 25px gold);
 }
 
+
+@keyframes aura{
+  0%,100%{ transform:scale(1); opacity:.7 }
+  50%{ transform:scale(1.25); opacity:1 }
+}
+
+
+/* лівий */
 .chest.left{
-  transform:translate(calc(-50% - 26vw),-50%) scale(.8);
-  z-index:2;
+  transform:translate(calc(-50% - 26vw),-50%) scale(.9);
+  opacity:.7;
+  z-index:3;
 }
 
+/* правий */
 .chest.right{
-  transform:translate(calc(-50% + 26vw),-50%) scale(.8);
-  z-index:2;
+  transform:translate(calc(-50% + 26vw),-50%) scale(.9);
+  opacity:.7;
+  z-index:3;
 }
+
+/* ДАЛЕКИЙ ЛІВИЙ */
+.chest.far-left{
+  transform:translate(calc(-50% - 50vw),-50%) scale(.65);
+  opacity:.4;
+  z-index:1;
+}
+
+/* ДАЛЕКИЙ ПРАВИЙ */
+.chest.far-right{
+  transform:translate(calc(-50% + 50vw),-50%) scale(.65);
+  opacity:.4;
+  z-index:1;
+}
+
+@keyframes centerPulse{
+  0%,100%{
+    transform:translate(-50%,-50%) scale(1.35);
+  }
+  50%{
+    transform:translate(-50%,-50%) scale(1.42);
+  }
+}
+
 
 .chest.opening{
   animation:openChest .6s ease;
@@ -150,26 +288,39 @@ body{
 
 /* ===== OVERLAY ===== */
 #overlay{
-  position:fixed; inset:0;
+  position:fixed;
+  inset:0;
   display:none;
   justify-content:center;
   align-items:center;
   flex-direction:column;
-  background:radial-gradient(circle,rgba(255,230,160,.95),rgba(120,0,180,.7),rgba(0,0,0,.95));
-  z-index:10;
+
+  background: radial-gradient(circle at center,
+    rgba(255,230,160,.98),
+    rgba(120,0,180,.85),
+    rgba(0,0,0,.98)
+  );
+
+  z-index:1000;
+
+  /* 🔥 оце головне — ігнорує всі transform екранів */
+  transform: none !important;
 }
-#overlay img{width:28vw;max-width:120px}
+
 
 /* scroll for carousel */
 .carousel{
-  overflow-x:auto;
+  overflow:hidden;
   scroll-snap-type:x mandatory;
 }
 .track{
   scroll-snap-align:center;
+  width:100%;
+  overflow:hidden;
 }
 
 .chest{
+  transform-style: preserve-3d;
   position:absolute;
   top:50%;
   left:50%;
@@ -183,24 +334,48 @@ body{
 .chest img{
   width:100%;
   display:block;
+  animation: chestGlow 3s infinite ease-in-out;
 }
+
+@keyframes chestGlow{
+  0%,100%{
+    filter: brightness(1);
+  }
+  50%{
+    filter: brightness(1.25);
+  }
+}
+
 
 .chest .base{
-  position:relative;
-  z-index:1;
+  position: relative;
+  z-index: 1;
+  transform: translateZ(0);
+}
+.chest:not(.center){
+  cursor: not-allowed;
+  filter: brightness(0.7);
 }
 
+
 .chest .lid{
-  position:absolute;
+  position: absolute;
   top: -26%;
   left: 21%;
   width: 62%;
-  z-index:2;
-  transition:transform .6s ease;
+
+  z-index: 5; /* 🔥 ВАЖЛИВО */
+  transform-origin: bottom center;
+  transform: rotateX(0deg) translateZ(2px);
+  transition: transform .6s ease;
 }
+
+
 .chest.opening .lid{
-  transform:translateY(-1cm);
+  transform: rotateX(75deg) translateZ(2px);
 }
+
+
 
 .final{
   position:fixed;
@@ -287,9 +462,165 @@ body{
 /* 📦 ЗБІЛЬШЕНІ EMPTY ТА FREE */
 #overlay img[src*="empty"],
 #overlay img[src*="free"] {
-  width: 40vw;
+  width: 50vw;
   max-width: 180px;
 }
+
+/* Король внизу праворуч з анімацією */
+#kingContainer {
+  position: absolute;
+  bottom: 50vw;
+  right: 10vw;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@keyframes kingIdle {
+  0%,100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.05) translateY(-6px); }
+}
+
+#kingImg {
+  width: 90vw;
+  max-width: 180px;
+  filter: drop-shadow(0 0 15px gold)
+          drop-shadow(0 0 25px gold)
+          drop-shadow(0 0 35px gold);
+  animation: kingIdle 3s ease-in-out infinite;
+}
+
+
+@keyframes kingEnter {
+  from { transform: translateX(150%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes kingExit {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(150%); opacity: 0; }
+}
+
+.king-exit {
+  animation: kingExit 0.8s forwards;
+}
+
+.king-enter {
+  animation: kingEnter 0.8s forwards;
+}
+
+
+
+
+
+/* Анімація заходу і виходу короля */
+@keyframes kingEnter {
+  0% {
+    transform: translateX(150%); /* починає з-за правого краю */
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-10%); /* трохи “проходить” за позицію */
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0); /* кінцева позиція */
+    opacity: 1;
+  }
+}
+
+@keyframes kingExit {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(150%); /* знову з’їжджає за правий край */
+    opacity: 0;
+  }
+}
+
+@keyframes prizeGlow {
+  0%,100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px gold)
+            drop-shadow(0 0 25px gold);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 25px #fff6b0)
+            drop-shadow(0 0 45px gold);
+  }
+}
+
+@keyframes prizeFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+#overlay img{
+  width: 38vw;
+  max-width: 160px;
+  min-width: 90px;
+
+  border-radius:50%;
+  animation:
+    prizeFloat 3s ease-in-out infinite,
+    prizeGlow 2.5s ease-in-out infinite;
+}
+
+
+#overlay::before{
+  content:'';
+  position:absolute;
+
+  width: 70vw;
+  height: 70vw;
+  max-width: 260px;
+  max-height: 260px;
+
+  border-radius:50%;
+  background: radial-gradient(circle,
+    rgba(255,240,180,.8),
+    rgba(255,200,60,.35),
+    transparent 70%
+  );
+
+  animation: prizeGlow 3s ease-in-out infinite;
+}
+
+
+.continueText{
+  margin-top: 6vw;
+  font-size: clamp(14px, 4vw, 22px);
+  text-align:center;
+  padding: 0 6vw;
+
+  color:#fff6b0;
+  text-shadow:0 0 10px gold, 0 0 25px gold;
+  animation: prizeFloat 2s ease-in-out infinite;
+}
+
+@media (max-width: 480px){
+
+  #overlay{
+    padding: 6vw;
+  }
+
+  #overlay img{
+    width: 42vw;
+    max-width: 140px;
+  }
+
+  #overlay::before{
+    width: 80vw;
+    height: 80vw;
+  }
+
+  .continueText{
+    font-size: 16px;
+  }
+}
+
 
 
 </style>
@@ -299,12 +630,17 @@ body{
 
 <!-- MENU -->
 <div id="menu" class="screen active">
-  <h2 class="glow" style="text-align:center;color:var(--gold)">ПУТЬ КОРОЛЯ</h2>
+  <h2 class="glow" style="text-align:center;color:var(--gold);padding-top: 10vh;">ПУТЬ КОРОЛЯ</h2>
+
+  <div id="kingContainer" style="text-align:right;margin:13vw 0;">
+    <img id="kingImg" src="hero0.png" >
+  </div>
 
   <div id="levels"></div>
 
   <div id="gallery"></div>
 </div>
+
 
 <!-- GAME -->
 <div id="game" class="screen">
@@ -321,7 +657,7 @@ body{
 <!-- PRIZE -->
 <div id="overlay">
   <img id="prizeImg">
-  <div style="margin-top:4vw;opacity:.8">Нажмите, чтобы продолжить</div>
+  <div class="continueText">Нажмите, чтобы продолжить</div>
 </div>
 
 <!-- ULTIMATE WIN -->
@@ -339,6 +675,7 @@ let chestRewards = []; // нагороди сундуків поточного �
 let artifactFound = false;
 
 
+
 const artifacts=[
   "11.png",
   "12.png",
@@ -350,6 +687,8 @@ const artifacts=[
 let collected=[];
 let levels=Array(5).fill(false);
 let current=0, attempts=5, active=2, locked=false;
+
+const openedChests = new Set();
 
 const menu=document.getElementById('menu');
 const game=document.getElementById('game');
@@ -401,43 +740,60 @@ function generateRewards(){
 
 function renderChests(){
   track.innerHTML='';
-  for(let i=0;i<5;i++){
-    const chest=document.createElement('div');
-    chest.className='chest';
-    chest.dataset.index=i;
-    chest.onclick=()=>openChest(active);
 
-    chest.innerHTML=`
+  for(let i=0;i<5;i++){
+    const chest = document.createElement('div');
+    chest.className = 'chest';
+    chest.dataset.index = i;
+
+    // ✅ передаємо реальний індекс
+    chest.onclick = () => openChest(i);
+
+    chest.innerHTML = `
       <img src="Case.png" class="base">
       <img src="lid.png" class="lid">
     `;
 
     track.appendChild(chest);
   }
+
   updateCarousel();
 }
 
 
 
-function openChest(){
-  if(locked||attempts<=0) return;
 
-  locked=true;
+function openChest(index){
+  if (locked || attempts <= 0) return;
+  if (openedChests.has(index)) return;
+
+  // 🔥 робимо клікнутий сундук центром
+  active = index;
+  updateCarousel();
+
+  const chest = document.querySelector(`.chest[data-index="${index}"]`);
+
+  locked = true;
   attempts--;
   updateAttempts();
 
-  const center=document.querySelector('.chest.center');
-  center.classList.add('opening');
+  chest.classList.add('opening');
 
-setTimeout(()=>{
-  center.classList.remove('opening');
-  showPrize();
-},600);
+  setTimeout(()=>{
+    openedChests.add(index);
+    showPrize();
+    locked = false;
+  }, 600);
 }
+
+
+
+
 
 function vibrate(pattern = [200, 100, 200]){
   if (navigator.vibrate) {
     navigator.vibrate(pattern);
+    
   }
 }
 
@@ -445,8 +801,11 @@ function vibrate(pattern = [200, 100, 200]){
 function showPrize(){
   let reward = chestRewards[active];
 
+  overlay.style.display = 'flex'; // показуємо overlay одразу
+  locked = true; // блокуємо інші дії поки показуємо приз
+
   if(reward === 'artifact'){
-    let prize = artifacts[current]; // 🔥 ЧІТКО ПО РІВНЮ
+    let prize = artifacts[current]; // по рівню
 
     if(!collected.includes(prize)){
       collected.push(prize);
@@ -456,75 +815,94 @@ function showPrize(){
     artifactFound = true;
     levels[current] = true;
 
-    // ✨ ФЕЄРВЕРК + ВІБРАЦІЯ ПРИ АРТЕФАКТІ
-launchFireworks(40);
-explode(
-  Math.random()*canvas.width,
-  Math.random()*canvas.height*0.5,
-  180
-);
-vibrate([150, 80, 150, 80, 300]);
+    // Феєрверки + вібрація
+    launchFireworks(40);
+    explode(Math.random()*canvas.width, Math.random()*canvas.height*0.5, 180);
+    vibrate([150, 80, 150, 80, 300]);
 
+    overlay.onclick = () => {
+      overlay.style.display = 'none';
+      locked = false;
 
-    overlay.style.display='flex';
-
-    overlay.onclick = ()=>{
-      overlay.style.display='none';
-      locked=false;
-
-      // 👑 Корона
-      if(prize === "5.png"){
+      // Корона
+      if(prize === "15.png") {
         megaFireworks();
         showCrownWin();
         return;
       }
 
-      // 👑✨ Повний Король
-      if(collected.length === artifacts.length){
+      if(collected.length === artifacts.length) {
         megaFireworks();
         showUltimateWin();
         return;
       }
 
-      switchScreen(game,menu);
+      switchScreen(game, menu);
       renderMenu();
     };
-    return;
   }
-
   else if(reward === 'free'){
     attempts++;
     updateAttempts();
-    prizeImg.src='free.png';
-  }
-  else{
-    prizeImg.src='empty.png';
-  }
+    prizeImg.src = 'free.png';
 
-  overlay.style.display='flex';
-  overlay.onclick=()=>{
-    overlay.style.display='none';
-    locked=false;
-  };
+    overlay.onclick = () => {
+      overlay.style.display = 'none';
+      locked = false;
+    };
+  }
+  else if(reward === 'empty'){
+    prizeImg.src = 'empty.png';
+    overlay.onclick = () => {
+      overlay.style.display = 'none';
+      locked = false;
+      // повертаємо на головний екран
+      switchScreen(game, menu);
+      renderMenu();
+    };
+  }
 }
-
 
 
 function updateCarousel(){
-  document.querySelectorAll('.chest').forEach(c=>{
-    c.classList.remove('left','center','right');
-    let i=Number(c.dataset.index);
 
-    if(i===active){
+  const positions = [
+    { x:-44, y:10, scale:.7, rotate:-18, opacity:.5, glow:0 },
+    { x:-22, y:4,  scale:.85, rotate:-8, opacity:.8, glow:0 },
+    { x:0,   y:0,  scale:1.2, rotate:0,  opacity:1, glow:1 },
+    { x:22,  y:4,  scale:.85, rotate:8,  opacity:.8, glow:0 },
+    { x:44,  y:10, scale:.7, rotate:18, opacity:.5, glow:0 }
+  ];
+
+  document.querySelectorAll('.chest').forEach((c,i)=>{
+
+    let posIndex = (i - active + 5) % 5;
+    let p = positions[posIndex];
+
+    c.style.transform = `
+      translate(-50%, -50%)
+      translateX(${p.x}vw)
+      translateY(${p.y}vw)
+      scale(${p.scale})
+      rotate(${p.rotate}deg)
+    `;
+
+    c.style.opacity = p.opacity;
+    c.style.zIndex = 10 - Math.abs(2 - posIndex);
+
+    // glow плавно переключається
+    if(p.glow){
       c.classList.add('center');
-    }else if(i===(active+4)%5){
-      c.classList.add('left');
-    }else if(i===(active+1)%5){
-      c.classList.add('right');
+    } else {
+      c.classList.remove('center');
     }
+
   });
 }
 
+
+
+vibrate([20]);
 
 
 function updateAttempts(){
@@ -545,29 +923,51 @@ function renderGallery(){
   });
 }
 
-let startX=0;
+let startX = 0;
 
 track.addEventListener('touchstart',e=>{
-  startX=e.touches[0].clientX;
+  startX = e.touches[0].clientX;
 });
 
 track.addEventListener('touchend',e=>{
-  let dx=e.changedTouches[0].clientX - startX;
-  if(Math.abs(dx)<40) return;
+  let dx = e.changedTouches[0].clientX - startX;
 
-  if(dx<0){
-    active = (active+1)%5;
-  }else{
-    active = (active+4)%5;
+  if(Math.abs(dx) < 40) return;
+
+  if(dx < 0){
+    active = (active + 1) % 5;
+  } else {
+    active = (active + 4) % 5;
   }
+
   updateCarousel();
 });
 
 
-function switchScreen(a,b){
-  a.classList.remove('active');
-  b.classList.add('active');
+
+
+function switchScreen(from, to){
+
+  // 1️⃣ меню їде вліво
+  from.style.transform = 'translateX(-100%)';
+
+  // чекаємо завершення анімації
+  setTimeout(()=>{
+
+    from.classList.remove('active');
+
+    // 2️⃣ готуємо новий екран справа
+    to.style.transform = 'translateX(100%)';
+    to.classList.add('active');
+
+    // 3️⃣ запускаємо заїзд
+    requestAnimationFrame(()=>{
+      to.style.transform = 'translateX(0)';
+    });
+
+  }, 600); // = transition .6s
 }
+
 
 const levelsBox=document.getElementById('levels');
 const levelTitle=document.getElementById('levelTitle');
@@ -662,9 +1062,84 @@ function megaFireworks(){
   },300);
 }
 
+const kings = [
+  "hero0.png", // стартовий
+  "hero1.png",
+  "hero2.png",
+  "hero3.png",
+  "hero4.png",
+  "hero5.png"
+];
+
+function updateKing() {
+  let passed = levels.filter(l => l).length;
+  let newSrc = kings[passed];
+  let king = document.getElementById('kingImg');
+
+  if (king.src.includes(newSrc)) return;
+
+  changeKing(newSrc);
+}
+
+
+
+function renderMenu(){
+  levelsBox.innerHTML='';
+  levels.forEach((done,i)=>{
+    const d=document.createElement('div');
+    d.className='level'+(done?' locked':'');
+    d.textContent='Уровень '+(i+1);
+    if(!done) d.onclick=()=>startLevel(i);
+    levelsBox.appendChild(d);
+  });
+  renderGallery();
+  updateKing(); // оновлюємо короля
+}
+
+function changeKing(newSrc) {
+  const king = document.getElementById('kingContainer');
+  const img = document.getElementById('kingImg');
+
+  king.classList.add('king-exit');
+
+  king.addEventListener('animationend', function handleExit() {
+    king.removeEventListener('animationend', handleExit);
+    king.classList.remove('king-exit');
+
+    img.src = newSrc;
+
+    king.classList.add('king-enter');
+
+    king.addEventListener('animationend', function handleEnter() {
+      king.removeEventListener('animationend', handleEnter);
+      king.classList.remove('king-enter');
+    });
+  });
+}
+
+function startLevel(i){
+  current = i;
+  attempts = 5;
+  artifactFound = false;
+
+  openedChests.clear(); // ✅ ОТУТ ПРАВИЛЬНО
+
+  generateRewards();
+  levelTitle.textContent = 'Уровень ' + (i + 1);
+  updateAttempts();
+  renderChests();
+  switchScreen(menu, game);
+}
+
+
+
+
+
+
 
 renderMenu();
 </script>
 
 </body>
 </html>
+ 
