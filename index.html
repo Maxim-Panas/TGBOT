@@ -113,7 +113,7 @@ body{
   flex-wrap: wrap;
   justify-content: center;
   gap: 2vw;
-  padding: 2vw 0;
+  padding: 30vw 0;
 }
 .slot{
   width:15vw;
@@ -618,13 +618,71 @@ body{
     font-size: 16px;
   }
 }
+#prizeImg{
+  z-index: 9999;
+}
 
+/* ===== LOADER ===== */
+.loaderScreen{
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle at center,#2a0040,#050008);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:2000;
+  opacity:0;
+  pointer-events:none;
+  transition:.5s;
+}
+
+.loaderScreen.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.loaderContent{
+  text-align:center;
+}
+
+.loaderSpinner{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  border:4px solid rgba(255,215,100,.2);
+  border-top:4px solid gold;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+.loaderText{
+  margin-top:20px;
+  font-size:20px;
+  color:var(--gold);
+  text-shadow:0 0 10px gold;
+  animation:pulse 2s infinite;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+@keyframes pulse{
+  0%,100%{opacity:.6}
+  50%{opacity:1}
+}
 
 
 </style>
 </head>
 
 <body>
+<div id="menuLoader" class="loaderScreen active">
+  <div class="loaderContent">
+    <div class="loaderSpinner"></div>
+    <div class="loaderText">Пробудження короля…</div>
+  </div>
+</div>
 
 <!-- MENU -->
 <div id="menu" class="screen active">
@@ -639,6 +697,12 @@ body{
   <div id="gallery"></div>
 </div>
 
+<div id="gameLoader" class="loaderScreen">
+  <div class="loaderContent">
+    <div class="loaderSpinner"></div>
+    <div class="loaderText">Ковка сундуків…</div>
+  </div>
+</div>
 
 <!-- GAME -->
 <div id="game" class="screen">
@@ -658,12 +722,12 @@ body{
   <div class="continueText">Нажмите, чтобы продолжить</div>
 </div>
 
-<!-- ULTIMATE WIN -->
-<div id="ultimateWin" class="final ultimate">
-  <img src="king_full.png">
-  <h1 class="glow">Истинный Король</h1>
-  <p>Все Артефакты покорились тебе</p>
+<div id="crownWin" class="final crown" style="display:none;flex-direction:column;justify-content:center;align-items:center;z-index:1000;">
+  <img src="king_full.png" style="width:38vw;max-width:160px;margin-bottom:4vw;">
+  <h1 class="glow">ПОЗДРАВЛЯЕМ!</h1>
+  <p>Вы стали королем!</p>
 </div>
+
 
 <canvas id="fireworks"></canvas>
 
@@ -684,7 +748,7 @@ const artifacts=[
 
 let collected=[];
 let levels=Array(5).fill(false);
-let current=0, attempts=5, active=2, locked=false;
+let current=0, attempts=100, active=2, locked=false;
 
 const openedChests = new Set();
 
@@ -707,7 +771,6 @@ function renderMenu(){
 
 function startLevel(i){
   current=i;
-  attempts=5;
   artifactFound=false;
 
   generateRewards();
@@ -717,6 +780,36 @@ function startLevel(i){
   renderChests();
   switchScreen(menu,game);
 }
+
+function chestCost(){
+  return current + 1; // 1 рівень = 1 ключ, 2 = 2 ...
+}
+
+const allImages = [
+  // королі
+  "hero0.png","hero1.png","hero2.png","hero3.png","hero4.png","hero5.png",
+  "king_full.png",
+
+  // сундуки
+  "Case.png","lid.png","empty.png","free.png",
+
+  // артефакти
+  ...artifacts
+];
+
+function preloadImages(list){
+  return Promise.all(
+    list.map(src=>{
+      return new Promise(res=>{
+        const img = new Image();
+        img.src = src;
+        img.onload = res;
+        img.onerror = res;
+      });
+    })
+  );
+}
+
 
 function generateRewards(){
   chestRewards = [
@@ -762,7 +855,8 @@ function renderChests(){
 
 
 function openChest(index){
-  if (locked || attempts <= 0) return;
+  const cost = chestCost();
+if (locked || attempts < cost) return;
   if (openedChests.has(index)) return;
 
   // 🔥 робимо клікнутий сундук центром
@@ -772,8 +866,8 @@ function openChest(index){
   const chest = document.querySelector(`.chest[data-index="${index}"]`);
 
   locked = true;
-  attempts--;
-  updateAttempts();
+  attempts -= cost;
+updateAttempts();
 
   chest.classList.add('opening');
 
@@ -904,7 +998,8 @@ vibrate([20]);
 
 
 function updateAttempts(){
-  attemptsEl.textContent='Попытки: '+attempts;
+  attemptsEl.textContent =
+  `Ключи: ${attempts} | Цена: ${chestCost()}`;
 }
 
 function renderGallery(){
@@ -1117,28 +1212,40 @@ function changeKing(newSrc) {
 
 function startLevel(i){
   current = i;
-  attempts = 5;
   artifactFound = false;
+  openedChests.clear();
 
-  openedChests.clear(); // ✅ ОТУТ ПРАВИЛЬНО
+  const gameLoader = document.getElementById('gameLoader');
+  gameLoader.classList.add('active');
 
-  generateRewards();
-  levelTitle.textContent = 'Уровень ' + (i + 1);
-  updateAttempts();
-  renderChests();
-  switchScreen(menu, game);
+  preloadImages(["Case.png","lid.png"]).then(()=>{
+
+    generateRewards();
+    levelTitle.textContent = 'Уровень ' + (i + 1);
+    updateAttempts();
+    renderChests();
+
+    gameLoader.classList.remove('active');
+    switchScreen(menu, game);
+  });
 }
 
 
 
+const menuLoader = document.getElementById('menuLoader');
 
+menu.classList.remove('active');
 
+menuLoader.classList.add('active');
 
+preloadImages(allImages).then(()=>{
+  menuLoader.classList.remove('active');
+  menu.classList.add('active');
+  renderMenu();
+});
 
-renderMenu();
 </script>
 
 </body>
 </html>
  
-
