@@ -672,11 +672,229 @@ body{
   50%{opacity:1}
 }
 
+.swipeHint{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background:
+    radial-gradient(circle at center,
+      rgba(255,215,120,.15),
+      rgba(0,0,0,.85)
+    );
+
+  backdrop-filter: blur(2px);
+
+  z-index: 5000;
+
+  opacity: 1;
+  pointer-events: auto;
+
+  animation: hintFadeIn .6s ease;
+}
+
+.swipeHint.hide{
+  animation: hintFadeOut .5s ease forwards;
+  pointer-events: none;
+}
+
+.swipeText{
+  margin-top: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: #ffd36a;
+  text-shadow:
+    0 0 8px rgba(255,211,106,.6),
+    0 0 18px rgba(255,170,60,.4);
+
+  animation: swipeGlow 2s ease-in-out infinite;
+}
+
+@keyframes hintFadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+@keyframes hintFadeOut{
+  to{opacity:0; transform: scale(1.05)}
+}
+
+@keyframes swipeGlow{
+  0%,100%{filter: drop-shadow(0 0 6px gold)}
+  50%{filter: drop-shadow(0 0 16px orange)}
+}
+
+.keys-ui {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #1e1a12, #3a2f1f);
+  border: 2px solid #d4af37;
+  border-radius: 999px;
+  padding: 6px 14px;
+  box-shadow: 0 0 15px rgba(212,175,55,0.4);
+  font-family: 'Cinzel', serif;
+  color: #ffd966;
+  font-weight: 700;
+  font-size: 18px;
+  z-index: 9999;
+}
+
+.key-icon {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 0 6px rgba(255,215,100,0.6));
+}
+
+#flyingKey {
+  position: fixed;
+  width: 36px;
+  height: 36px;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    top 0.6s cubic-bezier(.2,.9,.3,1),
+    left 0.6s cubic-bezier(.2,.9,.3,1),
+    transform 0.6s ease,
+    opacity 0.3s ease;
+  filter: drop-shadow(0 0 10px gold);
+}
+#flyingKey{
+  filter:
+    drop-shadow(0 0 8px gold)
+    drop-shadow(0 0 20px rgba(255,215,100,.8));
+}
+
+/* ===== NO KEYS OVERLAY ===== */
+.noKeysOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:
+    radial-gradient(circle at center,
+      rgba(255,220,140,.95),
+      rgba(120,0,180,.9),
+      rgba(0,0,0,.98)
+    );
+  z-index:10000;
+  animation: fadeIn .4s ease;
+}
+
+.noKeysBox{
+  background: linear-gradient(135deg,#1a0f05,#3a2610);
+  border:3px solid #d6a84a;
+  border-radius:22px;
+  padding:28px 26px 30px;
+  text-align:center;
+  box-shadow:
+    0 0 25px rgba(255,215,100,.6),
+    0 0 60px rgba(255,180,60,.4);
+  animation: popIn .45s cubic-bezier(.2,.9,.2,1);
+  max-width: 320px;
+}
+
+.noKeysIcon{
+  width:64px;
+  margin-bottom:12px;
+  filter:
+    drop-shadow(0 0 10px gold)
+    drop-shadow(0 0 20px rgba(255,215,100,.8));
+  animation: keyPulse 2s infinite;
+}
+
+.noKeysBox h2{
+  color:#ffd36a;
+  margin-bottom:10px;
+}
+
+.noKeysBox p{
+  color:#fff2c0;
+  font-size:16px;
+  line-height:1.4;
+  margin-bottom:18px;
+  text-shadow:0 0 8px rgba(255,215,100,.4);
+}
+
+#noKeysBtn{
+  background: linear-gradient(135deg,#ffd36a,#b8872f);
+  border:none;
+  border-radius:999px;
+  padding:10px 26px;
+  font-family:'Cinzel',serif;
+  font-weight:800;
+  font-size:16px;
+  color:#2a1500;
+  cursor:pointer;
+  box-shadow:
+    0 0 15px rgba(255,215,100,.6);
+  transition:.2s;
+}
+
+#noKeysBtn:hover{
+  transform: scale(1.08);
+  box-shadow:0 0 25px gold;
+}
+
+@keyframes popIn{
+  from{ transform:scale(.6); opacity:0 }
+  to{ transform:scale(1); opacity:1 }
+}
+
+@keyframes keyPulse{
+  0%,100%{ transform:scale(1) }
+  50%{ transform:scale(1.12) }
+}
+
+.keys-ui{
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px 10px;
+}
+
+.keys-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.keys-price{
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffdf8a;
+  text-shadow:
+    0 0 6px rgba(255,215,100,.6),
+    0 0 12px rgba(255,180,60,.4);
+  letter-spacing: .5px;
+}
+
+.global-keys-ui{
+  z-index: 3000; /* над усіма екранами */
+}
+
+/* трохи зменшимо в меню, щоб не заважало */
+#menu .global-keys-ui{
+  transform: scale(0.95);
+}
+
 
 </style>
 </head>
 
 <body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+
 <div id="menuLoader" class="loaderScreen active">
   <div class="loaderContent">
     <div class="loaderSpinner"></div>
@@ -704,12 +922,32 @@ body{
   </div>
 </div>
 
+<div class="keys-ui">
+  <div class="keys-top">
+    <img src="key.png" class="key-icon">
+    <span id="keysCount">3</span>
+  </div>
+  <div class="keys-price" id="keysPrice">
+    Ціна: 1 🔑
+  </div>
+</div>
+
 <!-- GAME -->
 <div id="game" class="screen">
   <div class="header">
     <div id="levelTitle" class="glow"></div>
-    <div id="attempts" class="attempts glow"></div>
   </div>
+
+<div id="swipeHint" class="swipeHint">
+  <div id="swipeLottie" style="width:220px;height:220px"></div>
+  <div class="swipeText">Проведи, щоб гортати сундуки</div>
+</div>
+
+
+
+
+<img src="key.png" id="flyingKey">
+
 
   <div class="carousel">
     <div class="track" id="track"></div>
@@ -731,10 +969,29 @@ body{
 
 <canvas id="fireworks"></canvas>
 
+<!-- NO KEYS OVERLAY -->
+<div id="noKeysOverlay" class="noKeysOverlay">
+  <div class="noKeysBox">
+    <img src="key.png" class="noKeysIcon">
+    <h2 class="glow">Ключі закінчились</h2>
+    <p>Королівські скрині зачинені…</p>
+    <button id="noKeysBtn">Зрозуміло</button>
+  </div>
+</div>
+
 
 <script>
 let chestRewards = []; // нагороди сундуків поточного рівня
 let artifactFound = false;
+let hintActive = true;
+const swipeHint = document.getElementById('swipeHint');
+['click','touchstart','touchend'].forEach(evt=>{
+  swipeHint.addEventListener(evt, ()=>{
+    if(hintActive){
+      hideSwipeHint();
+    }
+  });
+});
 
 
 
@@ -748,7 +1005,10 @@ const artifacts=[
 
 let collected=[];
 let levels=Array(5).fill(false);
-let current=0, attempts=100, active=2, locked=false;
+let current=0, active=2, locked=false;
+let unlockedLevel = 0; // індекс, 0 = доступний тільки 1 рівень
+
+
 
 const openedChests = new Set();
 
@@ -756,6 +1016,13 @@ const menu=document.getElementById('menu');
 const game=document.getElementById('game');
 const track=document.getElementById('track');
 const overlay=document.getElementById('overlay');
+const noKeysOverlay = document.getElementById('noKeysOverlay');
+const noKeysBtn = document.getElementById('noKeysBtn');
+
+noKeysBtn.onclick = () => {
+  noKeysOverlay.style.display = 'none';
+};
+
 
 function renderMenu(){
   levelsBox.innerHTML='';
@@ -776,8 +1043,8 @@ function startLevel(i){
   generateRewards();
 
   levelTitle.textContent='Уровень '+(i+1);
-  updateAttempts();
   renderChests();
+  updateKeysPrice();
   switchScreen(menu,game);
 }
 
@@ -851,32 +1118,69 @@ function renderChests(){
   updateCarousel();
 }
 
+function hideSwipeHint(){
+  hintActive = false;
+  swipeHint.classList.add('hide');
+
+  // 🔥 знищуємо Lottie
+  if(swipeAnimation){
+    swipeAnimation.destroy();
+    swipeAnimation = null;
+  }
+
+  setTimeout(()=>{
+    swipeHint.style.display = 'none';
+  }, 500);
+}
+
+
 
 
 
 function openChest(index){
-  const cost = chestCost();
-if (locked || attempts < cost) return;
-  if (openedChests.has(index)) return;
 
-  // 🔥 робимо клікнутий сундук центром
-  active = index;
-  updateCarousel();
+  if(hintActive){
+    hideSwipeHint();
+  }
+
+  const cost = chestCost();
+
+if (locked) return;
+
+if (keys < cost) {
+  noKeysOverlay.style.display = 'flex';
+  vibrate([120, 60, 120]);
+  return;
+}
+
+
+  if (openedChests.has(index)) return;
 
   const chest = document.querySelector(`.chest[data-index="${index}"]`);
 
-  locked = true;
-  attempts -= cost;
-updateAttempts();
+  useKeyAndOpenChest(chest, () => {
 
-  chest.classList.add('opening');
+    locked = true;
+    
 
-  setTimeout(()=>{
-    openedChests.add(index);
-    showPrize();
-    locked = false;
-  }, 600);
+    chest.classList.add('opening');
+
+    setTimeout(()=>{
+
+      openedChests.add(index);
+
+      // ❌ НЕ міняємо active тут
+      // active = index;
+      // updateCarousel();
+
+      showPrize(index); // 🔥 передаємо індекс
+
+    }, 600);
+
+  });
 }
+
+
 
 
 
@@ -890,14 +1194,21 @@ function vibrate(pattern = [200, 100, 200]){
 }
 
 
-function showPrize(){
-  let reward = chestRewards[active];
+function showPrize(openedIndex){
 
-  overlay.style.display = 'flex'; // показуємо overlay одразу
-  locked = true; // блокуємо інші дії поки показуємо приз
+  let reward = chestRewards[openedIndex];
+
+
+  overlay.style.display = 'flex';
+  locked = true;
 
   if(reward === 'artifact'){
-    let prize = artifacts[current]; // по рівню
+    let prize = artifacts[current];
+    // 🔓 відкриваємо наступний рівень
+if (current === unlockedLevel && unlockedLevel < levels.length - 1) {
+  unlockedLevel++;
+}
+
 
     if(!collected.includes(prize)){
       collected.push(prize);
@@ -907,16 +1218,19 @@ function showPrize(){
     artifactFound = true;
     levels[current] = true;
 
-    // Феєрверки + вібрація
     launchFireworks(40);
     explode(Math.random()*canvas.width, Math.random()*canvas.height*0.5, 180);
     vibrate([150, 80, 150, 80, 300]);
 
     overlay.onclick = () => {
       overlay.style.display = 'none';
+
+      // 🔥 сундук стає центральним ПІСЛЯ призу
+      active = openedIndex;
+      updateCarousel();
+
       locked = false;
 
-      // Корона
       if(prize === "15.png") {
         megaFireworks();
         showCrownWin();
@@ -932,28 +1246,42 @@ function showPrize(){
       switchScreen(game, menu);
       renderMenu();
     };
+
   }
   else if(reward === 'free'){
-    attempts++;
-    updateAttempts();
+    // 🔑 FREE = +1 ключ
+    keys++;
+    keysCountEl.textContent = keys;
+    updateKeysPrice();
+
     prizeImg.src = 'free.png';
 
     overlay.onclick = () => {
       overlay.style.display = 'none';
+
+      active = openedIndex;
+      updateCarousel();
+
       locked = false;
     };
   }
   else if(reward === 'empty'){
     prizeImg.src = 'empty.png';
+
     overlay.onclick = () => {
       overlay.style.display = 'none';
+
+      active = openedIndex;
+      updateCarousel();
+
       locked = false;
-      // повертаємо на головний екран
+
       switchScreen(game, menu);
       renderMenu();
     };
   }
 }
+
 
 
 function updateCarousel(){
@@ -988,6 +1316,7 @@ function updateCarousel(){
     } else {
       c.classList.remove('center');
     }
+updateKeysPrice();
 
   });
 }
@@ -997,10 +1326,7 @@ function updateCarousel(){
 vibrate([20]);
 
 
-function updateAttempts(){
-  attemptsEl.textContent =
-  `Ключи: ${attempts} | Цена: ${chestCost()}`;
-}
+
 
 function renderGallery(){
   gallery.innerHTML='';
@@ -1023,6 +1349,9 @@ track.addEventListener('touchstart',e=>{
 });
 
 track.addEventListener('touchend',e=>{
+  if(hintActive){
+  hideSwipeHint();
+}
   let dx = e.changedTouches[0].clientX - startX;
 
   if(Math.abs(dx) < 40) return;
@@ -1064,7 +1393,7 @@ function switchScreen(from, to){
 
 const levelsBox=document.getElementById('levels');
 const levelTitle=document.getElementById('levelTitle');
-const attemptsEl=document.getElementById('attempts');
+
 
 function launchFireworks(count=40){
   for(let i=0;i<count;i++){
@@ -1177,17 +1506,28 @@ function updateKing() {
 
 
 function renderMenu(){
-  levelsBox.innerHTML='';
-  levels.forEach((done,i)=>{
-    const d=document.createElement('div');
-    d.className='level'+(done?' locked':'');
-    d.textContent='Уровень '+(i+1);
-    if(!done) d.onclick=()=>startLevel(i);
+  levelsBox.innerHTML = '';
+
+  levels.forEach((done, i) => {
+    const d = document.createElement('div');
+    d.textContent = 'Уровень ' + (i + 1);
+
+    if (i > unlockedLevel) {
+      // 🔒 ще закритий
+      d.className = 'level locked';
+    } else {
+      // ✅ доступний
+      d.className = 'level';
+      d.onclick = () => startLevel(i);
+    }
+
     levelsBox.appendChild(d);
   });
+
   renderGallery();
-  updateKing(); // оновлюємо короля
+  updateKing();
 }
+
 
 function changeKing(newSrc) {
   const king = document.getElementById('kingContainer');
@@ -1220,14 +1560,23 @@ function startLevel(i){
 
   preloadImages(["Case.png","lid.png"]).then(()=>{
 
-    generateRewards();
-    levelTitle.textContent = 'Уровень ' + (i + 1);
-    updateAttempts();
-    renderChests();
+  generateRewards();
+  levelTitle.textContent = 'Уровень ' + (i + 1);
+  renderChests();
 
-    gameLoader.classList.remove('active');
-    switchScreen(menu, game);
-  });
+  gameLoader.classList.remove('active');
+  switchScreen(menu, game);
+
+  // 🔥 показуємо підказку
+  hintActive = true;
+  swipeHint.style.display = 'flex';
+  swipeHint.classList.remove('hide');
+
+  // 🔥 ЗАПУСК LOTTIE
+  setTimeout(startSwipeHint, 300);
+
+});
+
 }
 
 
@@ -1244,10 +1593,76 @@ preloadImages(allImages).then(()=>{
   renderMenu();
 });
 
+let keys = 3;
+const keysCountEl = document.getElementById('keysCount');
+const flyingKey = document.getElementById('flyingKey');
+
+function useKeyAndOpenChest(chestEl, callback){
+
+  const cost = chestCost();
+if (keys < cost) {
+
+  noKeysOverlay.style.display = 'flex';
+  vibrate([100,50,100]);
+  return;
+}
+
+
+keys -= cost;
+keysCountEl.textContent = keys;
+updateKeysPrice();
+
+  const uiKey = document.querySelector('.key-icon').getBoundingClientRect();
+  const chestRect = chestEl.getBoundingClientRect();
+
+  flyingKey.style.left = uiKey.left + 'px';
+  flyingKey.style.top = uiKey.top + 'px';
+  flyingKey.style.opacity = '1';
+  flyingKey.style.transform = 'scale(1) rotate(0deg)';
+
+  setTimeout(()=>{
+
+    flyingKey.style.left = (chestRect.left + chestRect.width * 0.55) + 'px';
+    flyingKey.style.top  = (chestRect.top  + chestRect.height * 0.45) + 'px';
+    flyingKey.style.transform = 'scale(0.9) rotate(110deg)';
+
+  }, 50);
+
+  // ніби ключ заходить в замок
+  setTimeout(()=>{
+
+    flyingKey.style.transform = 'scale(0.2) rotate(160deg)';
+    flyingKey.style.opacity = '0';
+
+    callback();
+
+  }, 650);
+}
+
+
+function updateKeysPrice(){
+  const priceEl = document.getElementById('keysPrice');
+  priceEl.textContent = `Ціна: ${chestCost()} 🔑`;
+}
+
+let swipeAnimation;
+
+function startSwipeHint(){
+
+  if(swipeAnimation) return; // щоб не створювати двічі
+
+  swipeAnimation = lottie.loadAnimation({
+    container: document.getElementById('swipeLottie'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'swipe-left.json'
+  });
+
+}
+
 </script>
 
 </body>
 </html>
  
-
-
