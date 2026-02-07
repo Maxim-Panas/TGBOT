@@ -888,6 +888,17 @@ body{
   transform: scale(0.95);
 }
 
+/* 🔑 ховаємо ключі, коли активний loader */
+.loaderScreen.active ~ .keys-ui,
+body.loading .keys-ui {
+  display: none !important;
+}
+
+/* 💰 ціна тільки в грі */
+#menu .keys-price {
+  display: none;
+}
+
 
 </style>
 </head>
@@ -1139,41 +1150,39 @@ function hideSwipeHint(){
 
 function openChest(index){
 
+  if (locked) return; // 🔒 БЛОК одразу
+  locked = true;      // 🔒 ставимо миттєво
+
   if(hintActive){
     hideSwipeHint();
   }
 
   const cost = chestCost();
 
-if (locked) return;
+  if (keys < cost) {
+    locked = false; // ❗ повертаємо, бо не відкрили
+    noKeysOverlay.style.display = 'flex';
+    vibrate([120, 60, 120]);
+    return;
+  }
 
-if (keys < cost) {
-  noKeysOverlay.style.display = 'flex';
-  vibrate([120, 60, 120]);
-  return;
-}
-
-
-  if (openedChests.has(index)) return;
+  if (openedChests.has(index)) {
+    locked = false;
+    return;
+  }
 
   const chest = document.querySelector(`.chest[data-index="${index}"]`);
 
   useKeyAndOpenChest(chest, () => {
-
-    locked = true;
-    
 
     chest.classList.add('opening');
 
     setTimeout(()=>{
 
       openedChests.add(index);
+      showPrize(index);
 
-      // ❌ НЕ міняємо active тут
-      // active = index;
-      // updateCarousel();
-
-      showPrize(index); // 🔥 передаємо індекс
+      // ❌ НЕ unlock тут — це робиться після overlay
 
     }, 600);
 
@@ -1369,6 +1378,16 @@ track.addEventListener('touchend',e=>{
 
 
 function switchScreen(from, to){
+  const priceEl = document.getElementById('keysPrice');
+
+// якщо йдемо в гру — показуємо ціну
+if (to.id === 'game') {
+  priceEl.style.display = 'block';
+} else {
+  // якщо меню або інше — ховаємо
+  priceEl.style.display = 'none';
+}
+
 
   // 1️⃣ меню їде вліво
   from.style.transform = 'translateX(-100%)';
@@ -1557,6 +1576,8 @@ function startLevel(i){
 
   const gameLoader = document.getElementById('gameLoader');
   gameLoader.classList.add('active');
+  document.body.classList.add('loading');
+
 
   preloadImages(["Case.png","lid.png"]).then(()=>{
 
@@ -1565,7 +1586,9 @@ function startLevel(i){
   renderChests();
 
   gameLoader.classList.remove('active');
-  switchScreen(menu, game);
+document.body.classList.remove('loading');
+switchScreen(menu, game);
+
 
   // 🔥 показуємо підказку
   hintActive = true;
@@ -1585,16 +1608,21 @@ const menuLoader = document.getElementById('menuLoader');
 
 menu.classList.remove('active');
 
+document.body.classList.add('loading'); // 🔑 ховаємо ключі
 menuLoader.classList.add('active');
 
 preloadImages(allImages).then(()=>{
   menuLoader.classList.remove('active');
+  document.body.classList.remove('loading'); // 🔑 показуємо ключі
   menu.classList.add('active');
   renderMenu();
 });
 
+
 let keys = 3;
 const keysCountEl = document.getElementById('keysCount');
+document.getElementById('keysPrice').style.display = 'none';
+
 const flyingKey = document.getElementById('flyingKey');
 
 function useKeyAndOpenChest(chestEl, callback){
